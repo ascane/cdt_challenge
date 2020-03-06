@@ -33,6 +33,14 @@ FOLLOWER_OUTPUT PositionController::computeControlCommand(Eigen::Isometry3d curr
 
   // EXAMPLE HEADING CONTROLLER CODE - ADD YOUR OWN POSITION + HEADING CONTROLLER HERE
   ///////////////////////////////////////////////////////////////////////
+
+  Eigen::Transform<double, 3, 1>::TranslationPart trans = current_pose.translation();
+  Eigen::Transform<double, 3, 1>::TranslationPart trans_goal = current_goal_.translation();
+  double gain_K_ = 10;
+  linear_forward_x = gain_K_ * sqrt(pow(trans.x() - trans_goal.x(), 2) + pow(trans.y() - trans_goal.y(), 2));
+  std::cout << "current pose: " << trans.x() << ", " << trans.y() << std::endl;
+  std::cout << "current goal: " << trans_goal.x() << ", " << trans_goal.y() << std::endl;
+
   ///////////////////////////////////////////////////////////////////////
 
   Eigen::Quaterniond q(current_pose.rotation());

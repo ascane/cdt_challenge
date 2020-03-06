@@ -51,7 +51,7 @@ LidarNavigation::LidarNavigation(ros::NodeHandle& nodeHandle, bool& success)
     success = false;
     return;
   }
-  
+
   success = true;
 
   verbose_ = false;
@@ -72,7 +72,7 @@ bool LidarNavigation::readParameters()
     return false;
   }
   nodeHandle_.param("filter_chain_parameter_name", filterChainParametersName_, std::string("grid_map_filters"));
-  
+
   nodeHandle_.param("demo_mode", demoMode_, true);
   if (demoMode_)
     ROS_INFO("In demo mode [%d]. will use a hard coded gridmap bag and robot pose", int(demoMode_) );
@@ -92,7 +92,7 @@ std::chrono::duration<double> LidarNavigation::toc(){
   auto nowTime = high_resolution_clock::now();
   duration<double> elapsedTime = duration_cast<milliseconds>(nowTime - lastTime_);
   lastTime_ = nowTime;
-  // std::cout << elapsedTime.count() << "ms elapsed" << std::endl;    
+  // std::cout << elapsedTime.count() << "ms elapsed" << std::endl;
   return elapsedTime;
 }
 
@@ -206,17 +206,31 @@ bool LidarNavigation::planCarrot(const grid_map_msgs::GridMap& message,
 
   ////// Put your code here ////////////////////////////////////
 
+  // std::vector<std::string> map_names = inputMap.getLayers();
+  // for (std::vector<std::string>::const_iterator i = map_names.begin(); i != map_names.end(); i++){
+  //   std::cout << *i << ' ';
+  // }
+  // std::cout << std::endl;
 
+  // elevation upper_bound lower_bound color uncertainty_range
 
+  const std::string & layer_name = "elevation";
+  grid_map::Matrix& elevation_map = inputMap.get(layer_name);
 
+  float lowest_elevation = 100;
+  Position3 lowest_pos_cell;
 
+  // find the lowest point
+  for (GridMapIterator iterator(inputMap); !iterator.isPastEnd(); ++iterator) {
+    const Index index(*iterator);
+    Position3 pos_cell;
+    inputMap.getPosition3(layer_name, index, pos_cell);
+    if (pos_cell[2] < lowest_elevation) {
+      lowest_pos_cell = pos_cell;
+    }
+  }
 
-
-
-
-
-
-
+  pose_chosen_carrot.translation() = Eigen::Vector3d(lowest_pos_cell[0],lowest_pos_cell[1],lowest_pos_cell[2]);
 
   ////// Put your code here ////////////////////////////////////
 
@@ -229,12 +243,12 @@ bool LidarNavigation::planCarrot(const grid_map_msgs::GridMap& message,
   if (verboseTimer_) std::cout << toc().count() << "ms: publish output\n";
 
   std::cout << "finish - carrot planner\n\n";
-  
+
 
   // REMOVE THIS WHEN YOUR ARE DEVELOPING ----------------
   // create a fake carrot - replace with a good carrot
-  std::cout << "REPLACE FAKE CARROT!\n";
-  pose_chosen_carrot.translation() = Eigen::Vector3d(1.0,0,0);
+  // std::cout << "REPLACE FAKE CARROT!\n";
+  // pose_chosen_carrot.translation() = Eigen::Vector3d(1.0,0,0);
   // REMOVE THIS -----------------------------------------
 
   return true;
